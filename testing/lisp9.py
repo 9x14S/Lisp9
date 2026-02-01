@@ -18,25 +18,47 @@ def print_usage(progname: str) -> None:
 
 sexpr: str = ''
 
+def pop():
+    global sexpr
+    sexpr = sexpr[1:]
+
 def eval_sexpr() -> int:
     global sexpr
-    result: int = 0
-    if sexpr.startswith('('):
-        sexpr = sexpr[1:]
-        return eval_sexpr()
     # Assume it is well-formatted for now and that it is an expr of the like:
     # + 2 4
+
+    if sexpr[0] == '(':
+        pop()
+        return eval_sexpr()
+
     if sexpr[0] in OPERATIONS:
         op = OPERATIONS[sexpr[0]]
-        arg1 = sexpr[2]
-        arg2 = sexpr[4]
-        result = op(int(arg1), int(arg2))
-        sexpr = sexpr[5:]
+        pop()
+        pop() # Space
     else:
-        result = int(sexpr[0])
+        raise ValueError(f"No operation '{sexpr[0]}'")
+
+    if sexpr[0] == '(':
+        pop()
+        arg1 = eval_sexpr()
+        pop() # Space
+    else:
+        arg1 = int(sexpr[0])
+        pop()
+        pop() # Space
+
+    if sexpr[0] == '(':
+        pop()
+        arg2 = eval_sexpr()
+        pop() # Space
+    else:
+        arg2 = int(sexpr[0])
+        pop()
+
     if sexpr[0] == ')':
-        sexpr = sexpr[1:]
-    return result
+        pop()
+    return op(int(arg1), int(arg2))
+
 
 def main(argv: list[str]) -> int:
     global sexpr
